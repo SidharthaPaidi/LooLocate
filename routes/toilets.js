@@ -11,7 +11,7 @@ const upload = multer({ storage })
 
 // Update your toilets.js GET route to pass location info to template
 router.get('/', async (req, res) => {
-  const { paid, minRating, location } = req.query;
+  const { paid, minRating, location, maxDistance } = req.query;
   let filter = {};
 
   // Apply paid filter
@@ -22,6 +22,10 @@ router.get('/', async (req, res) => {
   if (minRating && !isNaN(minRating)) {
     filter.cleanlinessRating = { $gte: parseInt(minRating) };
   }
+
+  const searchRadius = (maxDistance && !isNaN(maxDistance) && maxDistance > 0) 
+  ? parseFloat(maxDistance) * 1000 
+  : 100000; // Default 100km in meters
 
   let toilets = [];
   let searchedCity = null;
@@ -49,7 +53,7 @@ router.get('/', async (req, res) => {
                 type: "Point",
                 coordinates: [cityCenter[0], cityCenter[1]]
               },
-              $maxDistance: 100000 // 100 kilometers
+              $maxDistance: searchRadius
             }
           }
         };
@@ -58,11 +62,13 @@ router.get('/', async (req, res) => {
         Object.assign(geoQuery, filter);
         toilets = await Toilet.find(geoQuery);
 
+        const distanceKm = (searchRadius / 1000).toFixed(1);
+
         // Set flash messages based on results
         if (toilets.length > 0) {
           req.flash('success', `Found ${toilets.length} toilet${toilets.length > 1 ? 's' : ''} in ${searchedCity}`);
         } else {
-          req.flash('error', `No toilets found within 500m of ${searchedCity}. Try a broader search or add the first toilet in this area.`);
+          req.flash('error', `No toilets found within ${distanceKm} km of ${searchedCity}. Try a broader search or add the first toilet in this area.`);
         }
       } else {
         req.flash('error', 'Location not found. Please try a different search term.');
@@ -90,6 +96,7 @@ router.get('/', async (req, res) => {
     paid, 
     minRating, 
     location,
+    maxDistance : maxDistance || 100,
     searchedCity,
     success: successMessage,
     error: errorMessage
