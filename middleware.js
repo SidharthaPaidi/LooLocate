@@ -1,20 +1,88 @@
 const Toilet = require('./models/toilet');
 const User = require('./models/user')
+const jwt = require('jsonwebtoken');
 
-module.exports.isLoggedIn = (req, res, next) => {
-  if (!req.isAuthenticated()) {
-    req.session.returnTo = req.originalUrl; // so we can send them back after login
+//JWT verification middleware
+module.exports.verifyToken = async (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1] || req.query.token;
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      message: 'Authentication required'
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    req.user = user;
+    next();
+  } catch (err) {
+    return res.status(401).json({
+      success: false,
+      message: 'Invalid or expired token'
+    });
+  }
+};
+
+module.exports.isLoggedIn = async (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1] || req.query.token;
+
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const user = await User.findById(decoded.id);
+
+      if (user) {
+        req.user = user;
+        return next();
+      }
+    } catch (err) {
+      // Invalid token, proceed to check session
+    }
+  }
+
+
+  if (req.isAuthenticated && req.isAuthenticated()) {
+    return next();
+  }
+
+  // Neither JWT nor session found
+  if (req.accepts('json')) {
+    return res.status(401).json({
+      success: false,
+      message: 'You must be signed in first'
+    });
+  } else {
+    req.session.returnTo = req.originalUrl;
     req.flash('error', 'You must be signed in first');
     return res.redirect('/login');
   }
-  next();
 };
 
 module.exports.isAdmin = async (req, res, next) => {
-  const user = await User.findById(req.user._id);
+  const userId = req.user._id || req.user.id;
+  const user = await User.findById(userId);
+  
   if (!user || !user.isAdmin) {
-    req.flash('error', 'You do not have admin privileges');
-    return res.redirect('/');
+    if (req.accepts('json')) {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Admin privileges required' 
+      });
+    } else {
+      req.flash('error', 'You do not have admin privileges');
+      return res.redirect('/');
+    }
   }
   next();
 };
@@ -27,10 +95,21 @@ module.exports.isAuthor = async (req, res, next) => {
     return res.status(404).json({ error: "Toilet not found" });
   }
 
-  if (!toilet.author || !toilet.author.equals(req.user._id)) {
+  const userId = req.user._id || req.user.id;
+  if (!toilet.author || !toilet.author.equals(userId)) {
     return res.status(403).json({ error: "You do not have permission" });
   }
 
+  next();
+};
+
+//session only middleware
+module.exports.isLoggedInSession = (req, res, next) => {
+  if (!req.isAuthenticated()) {
+    req.session.returnTo = req.originalUrl;
+    req.flash('error', 'You must be signed in first');
+    return res.redirect('/login');
+  }
   next();
 };
 

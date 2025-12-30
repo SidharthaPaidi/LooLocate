@@ -1,6 +1,9 @@
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const User = require('../models/user'); 
+var jwt = require('jsonwebtoken');
+
+require('dotenv').config();
 
 // Debugging: Log the Google Client ID to ensure it's being read correctly
 // console.log("Google Client ID:", process.env.GOOGLE_CLIENT_ID);
@@ -12,7 +15,7 @@ passport.use(new GoogleStrategy({
       ? `https://${process.env.RENDER_EXTERNAL_HOSTNAME}/google/callback`
       : process.env.GOOGLE_CALLBACK_URL
   },
-  async (accessToken, refreshToken, profile, done) => {
+  async (profile, done) => {
     try {
       let user = await User.findOne({ googleId: profile.id });
       if (!user) {
@@ -30,6 +33,17 @@ passport.use(new GoogleStrategy({
     }
   }
 ));
+
+//jwt verification
+passport.verifyJwt = (token) => {
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    return decoded;
+  } catch (err) {
+    return null;
+  }
+}
+
 
 // serialize/deserialize
 passport.serializeUser((user, done) => {
