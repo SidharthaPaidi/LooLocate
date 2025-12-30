@@ -10,8 +10,7 @@ router.post('/', isLoggedIn, async (req, res) => {
     try {
         const toilet = await Toilet.findById(req.params.id);
         if (!toilet) {
-            req.flash('error', 'Toilet not found');
-            return res.redirect('/toilets');
+            return res.status(404).json({ success: false, error: 'Toilet not found' });
         }
 
         // Check if user already reviewed this toilet
@@ -21,11 +20,8 @@ router.post('/', isLoggedIn, async (req, res) => {
         });
 
         if (existingReview) {
-            req.flash('error', 'You have already reviewed this toilet');
-            return res.redirect(`/toilets/${toilet._id}`);
+            return res.status(400).json({ success: false, error: 'You have already reviewed this toilet' });
         }
-
-        
 
         const review = new Review({
             body: req.body.review.body,
@@ -41,11 +37,9 @@ router.post('/', isLoggedIn, async (req, res) => {
         // Recalculate average rating
         await toilet.calculateAverageRating();
 
-        req.flash('success', 'Review added successfully!');
-        res.redirect(`/toilets/${toilet._id}`);
+        res.status(201).json({ success: true, message: 'Review added successfully!', review });
     } catch (err) {
-        req.flash('error', 'Error adding review');
-        res.redirect(`/toilets/${req.params.id}`);
+        res.status(500).json({ success: false, error: 'Error adding review', details: err.message });
     }
 });
 
@@ -55,14 +49,12 @@ router.put('/:reviewId', isLoggedIn, async (req, res) => {
         const review = await Review.findById(req.params.reviewId);
         
         if (!review) {
-            req.flash('error', 'Review not found');
-            return res.redirect(`/toilets/${req.params.id}`);
+            return res.status(404).json({ success: false, error: 'Review not found' });
         }
 
         // Check if user owns this review
         if (!review.author.equals(req.user._id)) {
-            req.flash('error', 'You can only edit your own reviews');
-            return res.redirect(`/toilets/${req.params.id}`);
+            return res.status(403).json({ success: false, error: 'You can only edit your own reviews' });
         }
 
         review.body = req.body.review.body;
@@ -73,11 +65,9 @@ router.put('/:reviewId', isLoggedIn, async (req, res) => {
         const toilet = await Toilet.findById(req.params.id);
         await toilet.calculateAverageRating();
 
-        req.flash('success', 'Review updated successfully!');
-        res.redirect(`/toilets/${req.params.id}`);
+        res.json({ success: true, message: 'Review updated successfully!', review });
     } catch (err) {
-        req.flash('error', 'Error updating review');
-        res.redirect(`/toilets/${req.params.id}`);
+        res.status(500).json({ success: false, error: 'Error updating review', details: err.message });
     }
 });
 
@@ -87,14 +77,12 @@ router.delete('/:reviewId', isLoggedIn, async (req, res) => {
         const review = await Review.findById(req.params.reviewId);
         
         if (!review) {
-            req.flash('error', 'Review not found');
-            return res.redirect(`/toilets/${req.params.id}`);
+            return res.status(404).json({ success: false, error: 'Review not found' });
         }
 
         // Check if user owns this review
         if (!review.author.equals(req.user._id)) {
-            req.flash('error', 'You can only delete your own reviews');
-            return res.redirect(`/toilets/${req.params.id}`);
+            return res.status(403).json({ success: false, error: 'You can only delete your own reviews' });
         }
 
         await Review.findByIdAndDelete(req.params.reviewId);
@@ -108,11 +96,9 @@ router.delete('/:reviewId', isLoggedIn, async (req, res) => {
         const toilet = await Toilet.findById(req.params.id);
         await toilet.calculateAverageRating();
 
-        req.flash('success', 'Review deleted successfully!');
-        res.redirect(`/toilets/${req.params.id}`);
+        res.json({ success: true, message: 'Review deleted successfully!' });
     } catch (err) {
-        req.flash('error', 'Error deleting review');
-        res.redirect(`/toilets/${req.params.id}`);
+        res.status(500).json({ success: false, error: 'Error deleting review', details: err.message });
     }
 });
 

@@ -51,22 +51,15 @@ module.exports.isLoggedIn = async (req, res, next) => {
     }
   }
 
-
   if (req.isAuthenticated && req.isAuthenticated()) {
     return next();
   }
 
   // Neither JWT nor session found
-  if (req.accepts('json')) {
-    return res.status(401).json({
-      success: false,
-      message: 'You must be signed in first'
-    });
-  } else {
-    req.session.returnTo = req.originalUrl;
-    req.flash('error', 'You must be signed in first');
-    return res.redirect('/login');
-  }
+  return res.status(401).json({
+    success: false,
+    message: 'You must be signed in first'
+  });
 };
 
 module.exports.isAdmin = async (req, res, next) => {
@@ -74,15 +67,10 @@ module.exports.isAdmin = async (req, res, next) => {
   const user = await User.findById(userId);
   
   if (!user || !user.isAdmin) {
-    if (req.accepts('json')) {
-      return res.status(403).json({ 
-        success: false, 
-        message: 'Admin privileges required' 
-      });
-    } else {
-      req.flash('error', 'You do not have admin privileges');
-      return res.redirect('/');
-    }
+    return res.status(403).json({ 
+      success: false, 
+      message: 'Admin privileges required' 
+    });
   }
   next();
 };
@@ -92,24 +80,23 @@ module.exports.isAuthor = async (req, res, next) => {
   const toilet = await Toilet.findById(id);
 
   if (!toilet) {
-    return res.status(404).json({ error: "Toilet not found" });
+    return res.status(404).json({ success: false, message: "Toilet not found" });
   }
 
   const userId = req.user._id || req.user.id;
   if (!toilet.author || !toilet.author.equals(userId)) {
-    return res.status(403).json({ error: "You do not have permission" });
+    return res.status(403).json({ success: false, message: "You do not have permission" });
   }
 
   next();
 };
 
-//session only middleware
 module.exports.isLoggedInSession = (req, res, next) => {
   if (!req.isAuthenticated()) {
-    req.session.returnTo = req.originalUrl;
-    req.flash('error', 'You must be signed in first');
-    return res.redirect('/login');
+    return res.status(401).json({
+      success: false,
+      message: 'You must be signed in first'
+    });
   }
   next();
 };
-
