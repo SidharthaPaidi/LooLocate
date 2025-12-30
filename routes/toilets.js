@@ -2,12 +2,109 @@
 const express = require('express');
 const router = express.Router();
 const Toilet = require('../models/toilet');
+const User = require('../models/user');
 const { Types } = require('mongoose');
-const { isLoggedIn, isAuthor } = require('../middleware');
+const { isLoggedIn, isAuthor,isAdmin } = require('../middleware');
 const axios = require('axios');
 const multer = require('multer')
 const { storage, cloudinary } = require('../cloudinary')
 const upload = multer({ storage })
+
+// Admin view for pending/approved/rejected (put this above the /:id route)
+router.get('/admin', isLoggedIn, isAdmin, async (req, res) => {
+  try {
+    // Fetch all toilets and group by status
+    // Handle toilets that might not have status field (treat as Pending)
+    const allToilets = await Toilet.find({}).populate('author');
+    
+    console.log(`Admin: Found ${allToilets.length} total toilets`);
+    
+    // Update toilets without status to 'Pending'
+    const updateResult = await Toilet.updateMany(
+      { status: { $exists: false } },
+      { $set: { status: 'Pending' } }
+    );
+    if (updateResult.modifiedCount > 0) {
+      console.log(`Admin: Updated ${updateResult.modifiedCount} toilets to Pending status`);
+      // Re-fetch after update
+      const updatedToilets = await Toilet.find({}).populate('author');
+      allToilets.length = 0;
+      allToilets.push(...updatedToilets);
+    }
+    
+    const pending = allToilets.filter(t => !t.status || t.status === 'Pending' || t.status === 'pending');
+    const approved = allToilets.filter(t => t.status === 'Approved' || t.status === 'approved');
+    const rejected = allToilets.filter(t => t.status === 'Rejected' || t.status === 'rejected');
+
+    console.log(`Admin: Pending: ${pending.length}, Approved: ${approved.length}, Rejected: ${rejected.length}`);
+
+    res.render('toilets/admin', {
+      pending: pending || [],
+      approved: approved || [],
+      rejected: rejected || []
+    });
+  } catch (err) {
+    console.error('Error in admin route:', err);
+    req.flash('error', 'Error loading admin panel');
+    res.redirect('/toilets');
+  }
+});
+
+// Approve a toilet (must be before /:id route)
+router.post('/:id/approve', isLoggedIn, isAdmin, async (req, res) => {
+  try {
+    console.log('Approve route hit:', req.params.id);
+    const { id } = req.params;
+    if (!Types.ObjectId.isValid(id)) {
+      console.log('Invalid toilet ID:', id);
+      req.flash('error', 'Invalid toilet ID');
+      return res.redirect('/toilets/admin');
+    }
+    
+    const toilet = await Toilet.findByIdAndUpdate(id, { status: 'Approved' }, { new: true });
+    if (!toilet) {
+      console.log('Toilet not found:', id);
+      req.flash('error', 'Toilet not found');
+      return res.redirect('/toilets/admin');
+    }
+    
+    console.log('Toilet approved:', toilet.title);
+    req.flash('success', `Toilet "${toilet.title}" has been approved and is now visible on the dashboard.`);
+    res.redirect('/toilets/admin');
+  } catch (err) {
+    console.error('Error approving toilet:', err);
+    req.flash('error', 'Error approving toilet');
+    res.redirect('/toilets/admin');
+  }
+});
+
+// Reject a toilet (must be before /:id route)
+router.post('/:id/reject', isLoggedIn, isAdmin, async (req, res) => {
+  try {
+    console.log('Reject route hit:', req.params.id);
+    const { id } = req.params;
+    if (!Types.ObjectId.isValid(id)) {
+      console.log('Invalid toilet ID:', id);
+      req.flash('error', 'Invalid toilet ID');
+      return res.redirect('/toilets/admin');
+    }
+    
+    const toilet = await Toilet.findByIdAndUpdate(id, { status: 'Rejected' }, { new: true });
+    if (!toilet) {
+      console.log('Toilet not found:', id);
+      req.flash('error', 'Toilet not found');
+      return res.redirect('/toilets/admin');
+    }
+    
+    console.log('Toilet rejected:', toilet.title);
+    req.flash('success', `Toilet "${toilet.title}" has been rejected and will not be shown on the dashboard.`);
+    res.redirect('/toilets/admin');
+  } catch (err) {
+    console.error('Error rejecting toilet:', err);
+    req.flash('error', 'Error rejecting toilet');
+    res.redirect('/toilets/admin');
+  }
+});
 
 // Update your toilets.js GET route to pass location info to template
 router.get('/', async (req, res) => {
@@ -23,27 +120,30 @@ router.get('/', async (req, res) => {
     filter.cleanlinessRating = { $gte: parseInt(minRating) };
   }
 
-  const searchRadius = (maxDistance && !isNaN(maxDistance) && maxDistance > 0) 
-  ? parseFloat(maxDistance) * 1000 
-  : 100000; // Default 100km in meters
+  const searchRadius = (maxDistance && !isNaN(maxDistance) && maxDistance > 0)
+    ? parseFloat(maxDistance) * 1000
+    : 100000; // Default 100km in meters
 
   let toilets = [];
   let searchedCity = null;
+
+  // Only show approved toilets on dashboard
+  filter.status = 'Approved';
 
   // IMPROVED location search with geospatial indexing
   if (location && location.trim() !== '') {
     try {
       const geocodeUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(location)}.json?country=IN&proximity=79.0882,21.1458&limit=1&access_token=${process.env.MAPBOX_TOKEN}`;
-      
+
       const geoResponse = await axios.get(geocodeUrl);
-      
+
       if (geoResponse.data.features && geoResponse.data.features.length > 0) {
         const cityCenter = geoResponse.data.features[0].center; // [lng, lat]
         const cityName = geoResponse.data.features[0].place_name;
-        
+
         // Extract just city name (before comma)
         searchedCity = cityName.split(',')[0];
-        
+
         // Use geospatial query with 2dsphere index for efficient location-based search
         // $near returns results sorted by distance automatically
         let geoQuery = {
@@ -58,10 +158,9 @@ router.get('/', async (req, res) => {
           }
         };
 
-        // Combine geospatial query with other filters
+        // Combine geospatial query with other filters (including status)
         Object.assign(geoQuery, filter);
         toilets = await Toilet.find(geoQuery);
-
         const distanceKm = (searchRadius / 1000).toFixed(1);
 
         // Set flash messages based on results
@@ -78,25 +177,26 @@ router.get('/', async (req, res) => {
       req.flash('error', 'Could not search for that location. Please try again.');
     }
   } else {
-    // If no location search, just apply other filters
+    // If no location search, just apply other filters (including status)
     toilets = await Toilet.find(filter);
   }
 
   // Don't show flash messages for normal browsing
   let successMessage = null;
   let errorMessage = null;
-  
+
   if (location) {
     successMessage = req.flash('success');
     errorMessage = req.flash('error');
   }
 
-  res.render('toilets/index', { 
-    toilets, 
-    paid, 
-    minRating, 
+  res.render('toilets/index', {
+    toilets,
+    User,
+    paid,
+    minRating,
     location,
-    maxDistance : maxDistance || 100,
+    maxDistance: maxDistance || 100,
     searchedCity,
     success: successMessage,
     error: errorMessage

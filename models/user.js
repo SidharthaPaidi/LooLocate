@@ -5,7 +5,10 @@ const UserSchema = new mongoose.Schema({
     username: String,
     email: String,
     googleId: String,
-    profilePic: String
+    profilePic: String,
+    isAdmin : {type : Boolean, default : false},
+    isBlocked : {type : Boolean, default : false},
+
 })
 
 UserSchema.plugin(passportLocalMongoose); 

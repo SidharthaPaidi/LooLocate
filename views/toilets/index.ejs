@@ -17,6 +17,11 @@
           <button type="submit" class="search-button">
             🔍 Search
           </button>
+          <% if (currentUser && currentUser.isAdmin) { %>
+            <a href="/toilets/admin" class="admin-link">
+              🛠️ Admin Panel
+            </a>
+          <% } %>
         </div>
       </div>
 

@@ -75,6 +75,11 @@ const ToiletSchema = new Schema({
     reviewCount: {
         type: Number,
         default: 0
+    },
+    status : {
+        type: String,
+        enum: ['Pending', 'Approved', 'Rejected'],
+        default: 'Pending'
     }
 
 
