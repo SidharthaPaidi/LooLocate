@@ -10,7 +10,7 @@ router.post('/', isLoggedIn, async (req, res) => {
     try {
         const toilet = await Toilet.findById(req.params.id);
         if (!toilet) {
-            return res.status(404).json({ success: false, error: 'Toilet not found' });
+            return res.status(404).json({ success: false, message: 'Toilet not found' });
         }
 
         // Check if user already reviewed this toilet
@@ -20,7 +20,7 @@ router.post('/', isLoggedIn, async (req, res) => {
         });
 
         if (existingReview) {
-            return res.status(400).json({ success: false, error: 'You have already reviewed this toilet' });
+            return res.status(400).json({ success: false, message: 'You have already reviewed this toilet' });
         }
 
         const review = new Review({
@@ -39,7 +39,7 @@ router.post('/', isLoggedIn, async (req, res) => {
 
         res.status(201).json({ success: true, message: 'Review added successfully!', review });
     } catch (err) {
-        res.status(500).json({ success: false, error: 'Error adding review', details: err.message });
+        res.status(500).json({ success: false, message: 'Error adding review', error: err.message });
     }
 });
 
@@ -49,12 +49,12 @@ router.put('/:reviewId', isLoggedIn, async (req, res) => {
         const review = await Review.findById(req.params.reviewId);
         
         if (!review) {
-            return res.status(404).json({ success: false, error: 'Review not found' });
+            return res.status(404).json({ success: false, message: 'Review not found' });
         }
 
         // Check if user owns this review
         if (!review.author.equals(req.user._id)) {
-            return res.status(403).json({ success: false, error: 'You can only edit your own reviews' });
+            return res.status(403).json({ success: false, message: 'You can only edit your own reviews' });
         }
 
         review.body = req.body.review.body;
@@ -67,7 +67,7 @@ router.put('/:reviewId', isLoggedIn, async (req, res) => {
 
         res.json({ success: true, message: 'Review updated successfully!', review });
     } catch (err) {
-        res.status(500).json({ success: false, error: 'Error updating review', details: err.message });
+        res.status(500).json({ success: false, message: 'Error updating review', error: err.message });
     }
 });
 
@@ -77,12 +77,12 @@ router.delete('/:reviewId', isLoggedIn, async (req, res) => {
         const review = await Review.findById(req.params.reviewId);
         
         if (!review) {
-            return res.status(404).json({ success: false, error: 'Review not found' });
+            return res.status(404).json({ success: false, message: 'Review not found' });
         }
 
         // Check if user owns this review
         if (!review.author.equals(req.user._id)) {
-            return res.status(403).json({ success: false, error: 'You can only delete your own reviews' });
+            return res.status(403).json({ success: false, message: 'You can only delete your own reviews' });
         }
 
         await Review.findByIdAndDelete(req.params.reviewId);
@@ -98,7 +98,7 @@ router.delete('/:reviewId', isLoggedIn, async (req, res) => {
 
         res.json({ success: true, message: 'Review deleted successfully!' });
     } catch (err) {
-        res.status(500).json({ success: false, error: 'Error deleting review', details: err.message });
+        res.status(500).json({ success: false, message: 'Error deleting review', error: err.message });
     }
 });
 

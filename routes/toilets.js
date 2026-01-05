@@ -340,6 +340,7 @@ router.get('/:id', async (req, res) => {
 
     res.json({
       success: true,
+      isAdmin: req.user && req.user.isAdmin,
       data: { toilet }
     });
   } catch (err) {

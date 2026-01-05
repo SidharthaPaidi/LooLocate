@@ -17,10 +17,11 @@ router.get('/google',
 router.get('/google/callback',
   passport.authenticate('google', { failureRedirect: '/' }),
   (req, res) => {
-    // Generate JWT token and redirect with token
+    // Generate JWT token and redirect to frontend with token
     const token = generateToken(req.user.id);
-    // Successful login
-    res.redirect(`/toilets?tokens=${token}`);
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
+    // Redirect to frontend callback page with token
+    res.redirect(`${frontendUrl}/auth/google/callback?token=${token}`);
   }
 );
 // Register form
@@ -43,7 +44,8 @@ router.post('/register', async (req, res) => {
       user: {
         id: registeredUser._id,
         username: registeredUser.username,
-        email: registeredUser.email
+        email: registeredUser.email,
+        isAdmin : registeredUser.isAdmin || false
       }
     });
 
@@ -64,6 +66,15 @@ router.post('/register', async (req, res) => {
     } else if (e.message) {
       msg = e.message;
     }
+    
+    // Return JSON for API requests
+    if (req.headers['content-type']?.includes('application/json') || req.xhr) {
+      return res.status(400).json({
+        success: false,
+        message: msg
+      });
+    }
+    
     req.flash('error', msg);
     res.redirect('/register');
   }
@@ -95,7 +106,8 @@ router.post('/login', (req, res, next) => {
       user: {
         id: user._id,
         username: user.username,
-        email: user.email
+        email: user.email,
+        isAdmin: user.isAdmin || false
       }
     });
   })(req, res, next);
@@ -106,6 +118,45 @@ router.post('/logout', (req, res) => {
     success: true,
     message: 'Logged out successfully'
   });
+});
+
+// GET current user info (for frontend to get user data after OAuth)
+router.get('/me', async (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1] || req.query.token;
+  
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      message: 'Authentication required'
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+    
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        isAdmin: user.isAdmin || false
+      }
+    });
+  } catch (err) {
+    return res.status(401).json({
+      success: false,
+      message: 'Invalid or expired token'
+    });
+  }
 });
 
 module.exports = router;
