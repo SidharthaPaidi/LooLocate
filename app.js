@@ -26,6 +26,13 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 
+// CORS - must be before routes
+const cors = require('cors');
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || 'http://localhost:3001',
+  credentials: true
+}));
+
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // To parse form data
@@ -96,19 +103,12 @@ app.use('/toilets',toiletRoutes);
 
 
 const reviewRoutes = require('./routes/reviews');
-const cors = require('cors');
 app.use('/toilets/:id/reviews', reviewRoutes);
 
 app.get('/about', (req, res) => {
   res.render('about'); 
 });
 app.use(express.static('public'));
-
-
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3001',
-  credentials: true
-}));
 
 if (process.env.NODE_ENV !== 'test') {
   app.listen(3000, () => console.log('Listening on port 3000'));
