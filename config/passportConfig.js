@@ -15,7 +15,7 @@ passport.use(new GoogleStrategy({
       ? `https://${process.env.RENDER_EXTERNAL_HOSTNAME}/google/callback`
       : process.env.GOOGLE_CALLBACK_URL
   },
-  async (profile, done) => {
+  async (accessToken, refreshToken, profile, done) => {
     try {
       let user = await User.findOne({ googleId: profile.id });
       if (!user) {
