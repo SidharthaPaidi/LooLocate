@@ -9,13 +9,17 @@ import WcIcon from '@mui/icons-material/Wc';
 import { bgcolor, flex } from '@mui/system';
 import SearchBar from '../components/SearchBar';
 import mapboxgl from 'mapbox-gl';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Map from '../components/Map';
 import Brightness1Icon from '@mui/icons-material/Brightness1';
 import StarIcon from '@mui/icons-material/Star';
 import CurrencyRupeeIcon from '@mui/icons-material/CurrencyRupee';
 import AccessibleIcon from '@mui/icons-material/Accessible';
 import { useAuth } from '../context/AuthContext';
+import IconButton from '@mui/material/IconButton';
+import LinkedInIcon from '@mui/icons-material/LinkedIn';
+import GitHubIcon from '@mui/icons-material/GitHub';
+import EmailIcon from '@mui/icons-material/Email';
 
 
 const bull = (
@@ -25,6 +29,18 @@ const bull = (
 const Home = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const [showFloatingSearch, setShowFloatingSearch] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      setShowFloatingSearch(scrollY > 397);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const featureCards = [
     {
       title: 'Toilets Near You',
@@ -58,6 +74,33 @@ const Home = () => {
 
   return (
     <>
+      {/* Floating Search Bar */}
+      <Box
+        sx={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1100,
+          py: 1,
+          display: 'flex',
+          justifyContent: 'center',
+          elevation: 4,
+          transform: showFloatingSearch ? 'translateY(0)' : 'translateY(-100%)',
+          transition: 'transform 0.3s ease-in-out',
+        }}
+      >
+        <Box sx={{ transform: 'scale(0.85)', transformOrigin: 'center' }}>
+          <SearchBar onSearch={(filters) => {
+            const queryParams = new URLSearchParams();
+            if (filters.location) queryParams.append('location', filters.location);
+            if (filters.paid) queryParams.append('paid', filters.paid);
+            if (filters.maxDistance) queryParams.append('maxDistance', filters.maxDistance);
+            navigate(`/toilets?${queryParams.toString()}`);
+          }} />
+        </Box>
+      </Box>
+
       <Container>
         <Box sx={{
           minHeight: '44vh',
@@ -160,25 +203,62 @@ const Home = () => {
 
 
       </Container>
-      <Card sx={{ minWidth: 275, mt: 5, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <CardContent>
-          <Typography gutterBottom sx={{ color: 'text.secondary', fontSize: 14 }}>
-            Word of the Day
+
+      <Card
+        sx={{
+          mt: 5,
+          py: 3,
+          borderRadius: 3,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 1.5,
+          boxShadow: 1,
+        }}
+      >
+        <CardContent sx={{ textAlign: 'center', pb: 1 }}>
+          <Typography variant="body1" sx={{ fontWeight: 500 }}>
+            Built with ❤️ by <strong>Saisidhartha Paidi</strong>
           </Typography>
-          <Typography variant="h5" component="div">
-            be{bull}nev{bull}o{bull}lent
-          </Typography>
-          <Typography sx={{ color: 'text.secondary', mb: 1.5 }}>adjective</Typography>
-          <Typography variant="body2">
-            well meaning and kindly.
-            <br />
-            {'"a benevolent smile"'}
+
+          <Typography variant="caption" color="text.secondary">
+            Helping people find clean and accessible restrooms
           </Typography>
         </CardContent>
-        <CardActions>
-          <Button size="small">Learn More</Button>
+
+        <CardActions sx={{ gap: 1 }}>
+          <IconButton
+            component="a"
+            href="https://www.linkedin.com/in/saisidharthapaidi/"
+            target="_blank"
+            aria-label="LinkedIn"
+          >
+            <LinkedInIcon />
+          </IconButton>
+
+          <IconButton
+            component="a"
+            href="https://github.com/SidharthaPaidi"
+            target="_blank"
+            aria-label="GitHub"
+          >
+            <GitHubIcon />
+          </IconButton>
+
+          <IconButton
+            component="a"
+            href="mailto:paidisaisidhartha9@gmail.com"
+            aria-label="Email"
+          >
+            <EmailIcon />
+          </IconButton>
         </CardActions>
+
+        <Typography variant="caption" color="text.secondary">
+          © {new Date().getFullYear()} Loo Locater. All rights reserved.
+        </Typography>
       </Card>
+
     </>
   );
 };

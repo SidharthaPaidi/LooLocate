@@ -68,7 +68,7 @@ const ToiletList = () => {
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY;
-      setShowFloatingSearch(scrollY > 100);
+      setShowFloatingSearch(scrollY > 130);
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -78,7 +78,7 @@ const ToiletList = () => {
   return (
     <>
       <Box sx={{ width: '100%', bgcolor: 'primary.main', py: 2, mb: 4, boxShadow: 3, display: 'flex', justifyContent: 'center' }}>
-        <Box sx={{ transform: 'scale(0.85)', transformOrigin: 'center' }}>
+        <Box sx={{ transform: 'scale(0.95)', transformOrigin: 'center' }}>
           <SearchBar onSearch={handleSearch} initialValues={initialValues} />
         </Box>
       </Box>
@@ -92,14 +92,13 @@ const ToiletList = () => {
           right: 0,
           zIndex: 1100,
           py: 1,
-          bgcolor: 'primary.main',
           display: 'flex',
           justifyContent: 'center',
           transform: showFloatingSearch ? 'translateY(0)' : 'translateY(-100%)',
           transition: 'transform 0.3s ease-in-out',
         }}
       >
-        <Box sx={{ transform: 'scale(0.85)', transformOrigin: 'center' }}>
+        <Box sx={{ transform: 'scale(1)', transformOrigin: 'center' }}>
           <SearchBar onSearch={handleSearch} initialValues={initialValues} />
         </Box>
       </Box>
