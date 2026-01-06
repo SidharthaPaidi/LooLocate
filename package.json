@@ -26,6 +26,7 @@
     ]
   },
   "dependencies": {
+    "@faker-js/faker": "^10.2.0",
     "axios": "^1.11.0",
     "cloudinary": "^1.41.3",
     "connect-flash": "^0.1.1",
@@ -36,6 +37,7 @@
     "ejs-mate": "^4.0.0",
     "express": "^5.1.0",
     "express-session": "^1.18.2",
+    "faker": "^6.6.6",
     "jsonwebtoken": "^9.0.3",
     "lucid": "^2.21.0",
     "method-override": "^3.0.0",

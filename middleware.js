@@ -84,7 +84,7 @@ module.exports.isAuthor = async (req, res, next) => {
   }
 
   const userId = req.user._id || req.user.id;
-  if (!toilet.author || !toilet.author.equals(userId)) {
+  if (!toilet.author || (!toilet.author.equals(userId) && !(req.user.isAdmin))) {
     return res.status(403).json({ success: false, message: "You do not have permission" });
   }
 

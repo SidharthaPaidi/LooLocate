@@ -50,7 +50,7 @@ const ToiletSchema = new Schema({
 
     cleanlinessRating: {
         type: Number,
-        min: 1,
+        min: 0,
         max: 5
     },
 
