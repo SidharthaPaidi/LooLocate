@@ -41,7 +41,7 @@ const Navbar = () => {
                 '&:hover': { opacity: 0.9 },
               }}
             >
-              Loo Locater
+              LooLocate
             </Typography>
           </Box>
 

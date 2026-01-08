@@ -58,7 +58,7 @@ export default function Footer() {
                 </CardActions>
 
                 <Typography variant="caption" color="text.secondary">
-                    © {new Date().getFullYear()} Loo Locater. All rights reserved.
+                    © {new Date().getFullYear()} LooLocate. All rights reserved.
                 </Typography>
             </Card>
         </>

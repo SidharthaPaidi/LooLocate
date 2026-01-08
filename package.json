@@ -1,5 +1,5 @@
 {
-  "name": "LooLocater",
+  "name": "LooLocate",
   "version": "1.0.0",
   "description": "Final Year College Project",
   "main": "app.js",
@@ -14,14 +14,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/SidharthaPaidi/whereIsMyLoo.git"
+    "url": "git+https://github.com/SidharthaPaidi/LooLocate.git"
   },
   "author": "Saisidhartha",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/SidharthaPaidi/whereIsMyLoo/issues"
+    "url": "https://github.com/SidharthaPaidi/LooLocate/issues"
   },
-  "homepage": "https://github.com/SidharthaPaidi/whereIsMyLoo#readme",
+  "homepage": "https://github.com/SidharthaPaidi/LooLocate#readme",
   "jest": {
     "testPathIgnorePatterns": [
       "/node_modules/",

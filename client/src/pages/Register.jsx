@@ -129,6 +129,9 @@ const Register = () => {
                 Sign in
               </Link>
             </Typography>
+             <Typography variant="body2">
+              Username : admin , Password : admin@123
+            </Typography>
           </Box>
         </Box>
       </Paper>
