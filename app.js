@@ -39,15 +39,8 @@ app.use(express.urlencoded({ extended: true })); // To parse form data
 app.use(methodOverride('_method'));              // Enable method override
 app.use(express.static(path.join(__dirname, 'public'))); // Serve static files
 
-// Passport setup
-app.use(session({
-  secret: 'notagoodsecret',
-  resave: false,
-  saveUninitialized: true
-}));
-
+// Passport initialization (session configured below with MongoStore)
 app.use(passport.initialize());
-app.use(passport.session());
 
 // ----- sessions -----
 const store = MongoStore.create({
@@ -71,9 +64,16 @@ const sessionConfig = {
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
+    secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: 1000 * 60 * 60 * 24 * 7 // 1 week
   }
 };
+
+// Trust proxy for secure cookies behind reverse proxy (Render, Railway, etc.)
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
 app.use(session(sessionConfig));
 app.use(flash());
 
@@ -111,6 +111,7 @@ app.get('/about', (req, res) => {
 app.use(express.static('public'));
 
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(3000, () => console.log('Listening on port 3000'));
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
 }
 module.exports = app;

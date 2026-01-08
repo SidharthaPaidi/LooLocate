@@ -1,8 +1,11 @@
 {
-  "name": "whereismyloo",
+  "name": "LooLocater",
   "version": "1.0.0",
   "description": "Final Year College Project",
   "main": "app.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "start": "node app.js",
     "build": "npm install",
@@ -11,14 +14,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mandartule/WhereIsMyLoo.git"
+    "url": "git+https://github.com/SidharthaPaidi/whereIsMyLoo.git"
   },
-  "author": "mandar",
+  "author": "Saisidhartha",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/mandartule/WhereIsMyLoo/issues"
+    "url": "https://github.com/SidharthaPaidi/whereIsMyLoo/issues"
   },
-  "homepage": "https://github.com/mandartule/WhereIsMyLoo#readme",
+  "homepage": "https://github.com/SidharthaPaidi/whereIsMyLoo#readme",
   "jest": {
     "testPathIgnorePatterns": [
       "/node_modules/",
