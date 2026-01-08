@@ -16,10 +16,14 @@ import {
   CircularProgress,
   Chip,
   IconButton,
+  InputAdornment,
 } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { toiletsAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import MyLocationIcon from '@mui/icons-material/MyLocation';
+
 
 const ToiletForm = () => {
   const { id } = useParams();
@@ -43,6 +47,32 @@ const ToiletForm = () => {
   const [images, setImages] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
   const [imagesToDelete, setImagesToDelete] = useState([]);
+  const {user, logout, isAuthenticated} = useAuth();
+
+  const handleLocationClick = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          try {
+            const response = await fetch(
+              `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN || ''}`
+            );
+            const data = await response.json();
+            if (data.features && data.features.length > 0) {
+              const newLocation = data.features[0].place_name;
+              setFormData((prev) => ({ ...prev, location: newLocation }));
+            }
+          } catch (err) {
+            console.error('Geocoding error:', err);
+          }
+        },
+        (error) => {
+          console.error('Geolocation error:', error);
+        }
+      );
+    }
+  };
 
   useEffect(() => {
     if (isEdit) {
@@ -178,6 +208,18 @@ const ToiletForm = () => {
             required
             margin="normal"
             helperText="Enter the full address of the toilet location"
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <Button
+                    sx={{ padding: "4px 8px", fontSize: "12px" }}
+                    onClick={isAuthenticated ? handleLocationClick : () => navigate('/login')}
+                  >
+                  <MyLocationIcon  n sx={{ mr: 1 }}    /> Use My Location
+                  </Button>
+                </InputAdornment>
+              ),
+            }}
           />
 
           <TextField
