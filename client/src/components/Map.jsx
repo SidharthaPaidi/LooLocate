@@ -4,15 +4,17 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { Box } from '@mui/system';
 import { toiletsAPI } from '../services/api';
 
-const MapboxExample = () => {
+const Map = ({ type, toilet }) => {
     const mapContainerRef = useRef();
     const mapRef = useRef();
     const [toilets, setToilets] = useState([]);
 
-    // Fetch toilets data
+    // Fetch toilets data (only for non-detail type)
     useEffect(() => {
+        if (type === 'detail') return; // Skip fetching for detail view
+        
         const fetchToilets = async () => {
-            try {
+            try {   
                 const response = await toiletsAPI.getAll();
                 console.log('API Response:', response.data);
                 // API returns { success: true, data: { toilets: [...] } }
@@ -24,9 +26,51 @@ const MapboxExample = () => {
             }
         };
         fetchToilets();
-    }, []);
+    }, [type]);
 
+    // Initialize map for detail view (single toilet)
     useEffect(() => {
+        if (type !== 'detail') return;
+        if (!toilet?.geometry?.coordinates) return;
+        if (!mapContainerRef.current) return;
+        
+        mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
+
+        const [lng, lat] = toilet.geometry.coordinates;
+
+        mapRef.current = new mapboxgl.Map({
+            container: mapContainerRef.current,
+            style: 'mapbox://styles/mapbox/streets-v12',
+            center: [lng, lat],
+            zoom: 5
+        });
+
+        mapRef.current.addControl(new mapboxgl.NavigationControl());
+
+        // Add marker for the toilet
+        const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
+            `<div style="padding: 8px;">
+                <h3 style="margin: 0 0 8px 0; font-size: 16px;">${toilet.title}</h3>
+                <p style="margin: 4px 0; font-size: 14px;">📍 ${toilet.location}</p>
+            </div>`
+        );
+
+        new mapboxgl.Marker({ color: '#1976d2' })
+            .setLngLat([lng, lat])
+            .setPopup(popup)
+            .addTo(mapRef.current);
+
+        return () => {
+            if (mapRef.current) {
+                mapRef.current.remove();
+                mapRef.current = null;
+            }
+        };
+    }, [type, toilet]);
+
+    // Initialize map for list view (all toilets with clustering)
+    useEffect(() => {
+        if (type === 'detail') return;
         if (mapRef.current) return; // initialize map only once
         if (!mapContainerRef.current) return;
         
@@ -36,7 +80,7 @@ const MapboxExample = () => {
             container: mapContainerRef.current,
             style: 'mapbox://styles/mapbox/streets-v12',
             center: [78.9629, 20.5937], // Center on India
-            zoom: 4
+            zoom: 5
         });
 
         mapRef.current.addControl(new mapboxgl.NavigationControl());
@@ -47,10 +91,11 @@ const MapboxExample = () => {
                 mapRef.current = null;
             }
         };
-    }, []);
+    }, [type]);
 
-    // Add toilets data to map when toilets are fetched
+    // Add toilets data to map when toilets are fetched (list view only)
     useEffect(() => {
+        if (type === 'detail') return;
         if (!mapRef.current) {
             return;
         }
@@ -225,11 +270,15 @@ const MapboxExample = () => {
     }, [toilets]);
 
     return (
-        <Box sx={{ 
+        (type !== "detail" && <Box sx={{ 
         }}>
             <div ref={mapContainerRef} style={{ width: '100%', height: '50vh' }}></div>
-        </Box>
+        </Box>) ||
+
+        (type === "detail" && <Box >
+            <div ref={mapContainerRef} style={{ width: '100%', height: '400px', borderRadius: '8px' }}></div>
+        </Box>)
     );
 };
 
-export default MapboxExample;
+export default Map;

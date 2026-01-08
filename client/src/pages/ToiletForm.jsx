@@ -170,8 +170,8 @@ const ToiletForm = () => {
   }
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      <Typography variant="h4" gutterBottom sx={{ mb: 4, fontWeight: 700 }}>
+    <Container maxWidth="sm" sx={{ py: 4 }}>
+      <Typography variant="h4" gutterBottom sx={{ mb: 4, fontWeight: 700 , display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
         {isEdit ? 'Edit Toilet' : 'Add New Toilet'}
       </Typography>
 

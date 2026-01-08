@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Container,
   Box,
@@ -28,6 +28,8 @@ import RemoveCircleOutlineIcon from '@mui/icons-material/Delete';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { toiletsAPI, reviewsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import Footer from '../components/Footer';
+import Map from '../components/Map';
 
 const ToiletDetail = () => {
   const { id } = useParams();
@@ -135,163 +137,40 @@ const ToiletDetail = () => {
   if (!toilet) return null;
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <>
       <Button
         startIcon={<ArrowBackIcon />}
         onClick={() => navigate('/toilets')}
-        sx={{ mb: 3 }}
+        sx={{ mt: 2, ml: 20 }}
       >
         Back to List
       </Button>
 
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError('')}>
-          {error}
-        </Alert>
-      )}
-
-      <Grid container spacing={4}>
-        {/* Left Column - Images & Details */}
-        <Grid item xs={12} md={7} size={4} sx={{}}>
-          <Grid>
-            <Card sx={{ mb: 3 }}>
-              <CardMedia
-                component="img"
-                height={400}
-                image={toilet.images?.[0]?.url || 'https://via.placeholder.com/800x400?text=No+Image'}
-                alt={toilet.title}
-                sx={{ objectFit: 'cover' }}
-              />
-              {toilet.images?.length > 1 && (
-                <Box sx={{ display: 'flex', gap: 1, p: 2, overflowX: 'auto' }}>
-                  {toilet.images.slice(1).map((img, idx) => (
-                    <CardMedia
-                      key={idx}
-                      component="img"
-                      sx={{ width: 100, height: 100, objectFit: 'cover', borderRadius: 1 }}
-                      image={img.url}
-                      alt={`${toilet.title} ${idx + 2}`}
-                    />
-                  ))}
-                </Box>
-              )}
-            </Card>
-          </Grid>
-
-          <Grid>
-            <Paper sx={{ p: 3 }}>
-              <Typography variant="h4" gutterBottom sx={{ fontWeight: 700 }}>
-                {toilet.title}
-              </Typography>
-              <Typography
-                variant="body1"
-                color="text.secondary"
-                gutterBottom
-                sx={{ display: 'flex', alignItems: 'center', mb: 3 }}
-              >
-                <LocationOnIcon sx={{ mr: 1 }} />
-                {toilet.location}
-              </Typography>
-
-              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 3 }}>
-                <Chip
-                  label={toilet.isPaid ? `₹${toilet.price || 0}` : 'Free'}
-                  color={toilet.isPaid ? 'default' : 'success'}
-                />
-                <Chip label={toilet.genderAccess} />
-                {toilet.isAccessible && <Chip label="♿ Wheelchair Accessible" />}
-                {toilet.hasSanitaryPadDisposal && <Chip label="🩸 Sanitary Facilities" />}
+      <Container maxWidth="lg" sx={{ p: 3, mt: -5, display: 'flex', justifyContent: 'space-evenly' }}>
+        <Grid size="5" sx={{ p: 1, mt: -5 }}>
+          <Card sx={{ mb: 3, maxWidth: 500, mt: 7 }}>
+            <CardMedia
+              component="img"
+              image={toilet.images?.[0]?.url || 'https://via.placeholder.com/800x400?text=No+Image'}
+              alt={toilet.title}
+              sx={{ objectFit: 'cover', height: 300 }}
+            />
+            {toilet.images?.length > 1 && (
+              <Box sx={{ display: 'flex', gap: 1, p: 2 }}>
+                {toilet.images.slice(1).map((img, idx) => (
+                  <CardMedia
+                    key={idx}
+                    component="img"
+                    image={img.url}
+                    alt={`${toilet.title} ${idx + 2}`}
+                    sx={{ width: 100, height: 80, objectFit: 'cover' }}
+                  />
+                ))}
               </Box>
-
-              <Divider sx={{ my: 3 }} />
-
-              <Typography variant="h6" gutterBottom>
-                Description
-              </Typography>
-              <Typography variant="body1" color="text.secondary" paragraph>
-                {toilet.description || 'No description provided'}
-              </Typography>
-
-              <Divider sx={{ my: 3 }} />
-
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">
-                    Price
-                  </Typography>
-                  <Typography variant="h6">
-                    {toilet.isPaid ? `₹${toilet.price || 0}` : 'Free'}
-                  </Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">
-                    Gender Access
-                  </Typography>
-                  <Typography variant="h6">{toilet.genderAccess}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">
-                    Wheelchair Accessible
-                  </Typography>
-                  <Typography variant="h6">{toilet.isAccessible ? 'Yes' : 'No'}</Typography>
-                </Grid>
-                {toilet.cleanlinessRating && (
-                  <Grid item xs={6}>
-                    <Typography variant="body2" color="text.secondary">
-                      Cleanliness Rating
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Rating value={toilet.cleanlinessRating} readOnly size="small" />
-                      <Typography variant="body1">{toilet.cleanlinessRating}/5</Typography>
-                    </Box>
-                  </Grid>
-                )}
-              </Grid>
-
-              {(user?.isAdmin || isOwner) && (
-                <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
-                  <Button
-                    variant="outlined"
-                    startIcon={<EditIcon />}
-                    component={Link}
-                    to={`/toilets/${id}/edit`}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    startIcon={<DeleteIcon />}
-                    onClick={handleDelete}
-                  >
-                    Delete
-                  </Button>
-                  {user?.isAdmin && (
-                    <Button
-                      variant="outlined"
-                      color="error"
-                      startIcon={<RemoveCircleOutlineIcon />}
-                      onClick={handleReject}
-                    >
-                      Reject
-                    </Button>
-                  )}
-                  {user.isAdmin && !toilet.isApproved && (
-                    <Chip
-                      label="Pending Approval"
-                      color="warning"
-                      sx={{ ml: 2 }}
-                    />
-                  )}
-                </Box>
-              )}
-            </Paper>
-          </Grid>
-        </Grid>
-        {/* Right Column - Reviews */}
-        <Grid item xs={12} md={5}>
-          <Paper sx={{ p: 3, position: 'sticky', top: 80 }}>
-            <Typography variant="h5" gutterBottom sx={{ fontWeight: 700 }}>
+            )}
+          </Card>
+          <Paper sx={{ p: 3, top: 80 }}>
+            <Typography variant="h5" gutterBottom sx={{ fontWeight: 700, textDecoration: 'underline' }}>
               Reviews ({toilet.reviewCount || 0})
             </Typography>
 
@@ -308,10 +187,7 @@ const ToiletDetail = () => {
             )}
 
             {isAuthenticated && !userHasReviewed && (
-              <Button
-                variant="contained"
-                fullWidth
-                onClick={() => setReviewDialogOpen(true)}
+              <Button variant="contained" fullWidth onClick={() => setReviewDialogOpen(true)}
                 sx={{ mb: 3 }}
               >
                 Add Review
@@ -326,14 +202,122 @@ const ToiletDetail = () => {
 
             {!isAuthenticated && (
               <Alert severity="info" sx={{ mb: 3 }}>
-                Please <Link to="/login">login</Link> to add a review
+                Please
+                <Link to="/login"> login</Link> to add a review
               </Alert>
             )}
+          </Paper>
+        </Grid>
+        <Grid sx={{ p: 3, borderRadius: 2, size: "7" }}>
+          <Paper sx={{ p: 4 }}>
+            <Typography variant="h4" gutterBottom sx={{ fontWeight: 700 }}>
+              {toilet.title}
+            </Typography>
+            <Typography
+              variant="body1"
+              color="text.secondary"
+              gutterBottom
+              sx={{ display: 'flex', alignItems: 'center', mb: 3 }}
+            >
+              <LocationOnIcon sx={{ mr: 1 }} />
+              {toilet.location}                </Typography>
+
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 3 }}>
+              <Chip
+                label={toilet.isPaid ? `₹${toilet.price || 0}` : 'Free'}
+                color={toilet.isPaid ? 'default' : 'success'}
+              />
+              <Chip label={toilet.genderAccess} />
+              {toilet.isAccessible && <Chip label="♿ Wheelchair Accessible" />}
+              {toilet.hasSanitaryPadDisposal && <Chip label="🩸 Sanitary Facilities" />}
+            </Box>
 
             <Divider sx={{ my: 3 }} />
 
+            <Typography variant="h6" gutterBottom>
+              Description
+            </Typography>
+            <Typography variant="body1" color="text.secondary" paragraph>
+              {toilet.description || 'No description provided'}
+            </Typography>
+
+            <Divider sx={{ my: 3 }} />
+
+            <Grid container spacing={2}>
+              <Grid item xs={6}>
+                <Typography variant="body2" color="text.secondary">
+                  Price
+                </Typography>
+                <Typography variant="h6">
+                  {toilet.isPaid ? `₹${toilet.price || 0}` : 'Free'}
+                </Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography variant="body2" color="text.secondary">
+                  Gender Access
+                </Typography>
+                <Typography variant="h6">{toilet.genderAccess}</Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography variant="body2" color="text.secondary">
+                  Wheelchair Accessible
+                </Typography>
+                <Typography variant="h6">{toilet.isAccessible ? 'Yes' : 'No'}</Typography>
+              </Grid>
+              {toilet.cleanlinessRating && (
+                <Grid item xs={6}>
+                  <Typography variant="body2" color="text.secondary">
+                    Cleanliness Rating
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Rating value={toilet.cleanlinessRating} readOnly size="small" />
+                    <Typography variant="body1">{toilet.cleanlinessRating}/5</Typography>
+                  </Box>
+                </Grid>
+              )}
+            </Grid>
+
+            {(user?.isAdmin || isOwner) && (
+              <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
+                <Button
+                  variant="outlined"
+                  startIcon={<EditIcon />}
+                  component={Link}
+                  to={`/toilets/${id}/edit`}
+                >
+                  Edit
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  startIcon={<DeleteIcon />}
+                  onClick={handleDelete}
+                >
+                  Delete
+                </Button>
+                {user?.isAdmin && (
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    startIcon={<RemoveCircleOutlineIcon />}
+                    onClick={handleReject}
+                  >
+                    Reject
+                  </Button>
+                )}
+                {user.isAdmin && !toilet.isApproved && (
+                  <Chip
+                    label="Pending Approval"
+                    color="warning"
+                    sx={{ ml: 2 }}
+                  />
+                )}
+              </Box>
+            )}
+          </Paper>
+          <Paper sx={{ mt: 2 }}>
             {toilet.reviews && toilet.reviews.length > 0 ? (
-              <Box sx={{ maxHeight: '500px', overflowY: 'auto' }}>
+              <Box sx={{ maxHeight: '500px', overflowY: 'auto', p: 3 }}>
                 {toilet.reviews.map((review) => (
                   <Box key={review._id} sx={{ mb: 3, pb: 3, borderBottom: '1px solid #e0e0e0' }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
@@ -357,44 +341,38 @@ const ToiletDetail = () => {
               </Typography>
             )}
           </Paper>
+          <Grid>
+            <Dialog open={reviewDialogOpen} onClose={() => setReviewDialogOpen(false)} maxWidth="sm" fullWidth>
+              <DialogTitle>Add Your Review</DialogTitle>
+              <DialogContent>
+                <Box sx={{ pt: 2 }}>
+                  <Typography gutterBottom>Rating</Typography>
+                  <Rating value={reviewForm.rating} onChange={(e, newValue) => setReviewForm({ ...reviewForm, rating: newValue })}
+                    size="large"
+                  />
+                  <TextField fullWidth multiline rows={4} label="Review" value={reviewForm.body} onChange={(e) => setReviewForm({
+                    ...reviewForm, body: e.target.value
+                  })}
+                    sx={{ mt: 3 }}
+                    required
+                  />
+                </Box>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => setReviewDialogOpen(false)}>Cancel</Button>
+                <Button variant="contained" onClick={handleReviewSubmit} disabled={submittingReview || !reviewForm.body}>
+                  {submittingReview ? 'Submitting...' : 'Submit'}
+                </Button>
+              </DialogActions>
+            </Dialog>
+          </Grid>
         </Grid>
-      </Grid>
-
-      {/* Review Dialog */}
-      <Dialog open={reviewDialogOpen} onClose={() => setReviewDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Add Your Review</DialogTitle>
-        <DialogContent>
-          <Box sx={{ pt: 2 }}>
-            <Typography gutterBottom>Rating</Typography>
-            <Rating
-              value={reviewForm.rating}
-              onChange={(e, newValue) => setReviewForm({ ...reviewForm, rating: newValue })}
-              size="large"
-            />
-            <TextField
-              fullWidth
-              multiline
-              rows={4}
-              label="Review"
-              value={reviewForm.body}
-              onChange={(e) => setReviewForm({ ...reviewForm, body: e.target.value })}
-              sx={{ mt: 3 }}
-              required
-            />
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setReviewDialogOpen(false)}>Cancel</Button>
-          <Button
-            variant="contained"
-            onClick={handleReviewSubmit}
-            disabled={submittingReview || !reviewForm.body}
-          >
-            {submittingReview ? 'Submitting...' : 'Submit'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Container>
+      </Container>
+      <Container maxWidth="lg" sx={{ p: 3, mt: -5 }}>
+        <Map type="detail" toilet={toilet} />
+      </Container>
+      <Footer />
+    </>
   );
 };
 
