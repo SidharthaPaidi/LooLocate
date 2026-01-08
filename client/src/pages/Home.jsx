@@ -34,7 +34,7 @@ const Home = () => {
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY;
-      setShowFloatingSearch(scrollY > 397);
+      setShowFloatingSearch(scrollY > 400);
     };
 
     window.addEventListener('scroll', handleScroll);

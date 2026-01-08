@@ -23,6 +23,7 @@ import { toiletsAPI } from '../services/api';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
+import Masonry from '@mui/lab/Masonry';
 
 const AdminPanel = () => {
   const [tabValue, setTabValue] = useState(0);
@@ -74,8 +75,8 @@ const AdminPanel = () => {
   const currentToilets = tabValue === 0 ? toilets.pending : tabValue === 1 ? toilets.approved : toilets.rejected;
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Typography variant="h4" gutterBottom sx={{ fontWeight: 700, mb: 4 }}>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Typography variant="h4" gutterBottom sx={{ fontWeight: 700, mb: 4, ml: 4 }}>
         Admin Panel
       </Typography>
 
@@ -104,7 +105,14 @@ const AdminPanel = () => {
           </Typography>
         </Paper>
       ) : (
-        <Grid container spacing={3}>
+        <Masonry
+          columns={{ xs: 1, sm: 2, md: 3, lg: 4 }}
+          spacing={3}
+          sx={{
+            marginTop: "-30px",
+            marginLeft: "3px",
+          }}
+        >
           {currentToilets.map((toilet) => (
             <Grid item xs={12} md={6} lg={4} key={toilet._id}>
               <Card
@@ -185,7 +193,7 @@ const AdminPanel = () => {
               </Card>
             </Grid>
           ))}
-        </Grid>
+        </Masonry>
       )}
 
       {/* Action Confirmation Dialog */}
