@@ -6,9 +6,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import WcIcon from '@mui/icons-material/Wc';
-import { bgcolor, flex } from '@mui/system';
 import SearchBar from '../components/SearchBar';
-import mapboxgl from 'mapbox-gl';
 import { useEffect, useRef, useState } from 'react';
 import Map from '../components/Map';
 import Brightness1Icon from '@mui/icons-material/Brightness1';
@@ -16,10 +14,6 @@ import StarIcon from '@mui/icons-material/Star';
 import CurrencyRupeeIcon from '@mui/icons-material/CurrencyRupee';
 import AccessibleIcon from '@mui/icons-material/Accessible';
 import { useAuth } from '../context/AuthContext';
-import IconButton from '@mui/material/IconButton';
-import LinkedInIcon from '@mui/icons-material/LinkedIn';
-import GitHubIcon from '@mui/icons-material/GitHub';
-import EmailIcon from '@mui/icons-material/Email';
 import Footer from '../components/Footer';
 
 
@@ -184,7 +178,7 @@ const Home = () => {
                     </CardContent>
 
                     <CardActions>
-                      <Button onClick={isAuthenticated ? () => navigate('/toilets') : () => navigate('/login')} size="small">{card.action}</Button>
+                      <Button onClick={() => navigate('/toilets')} size="small">{card.action}</Button>
                     </CardActions>
                   </Card>
                 </Box>
