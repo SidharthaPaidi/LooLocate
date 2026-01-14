@@ -16,10 +16,10 @@ const Map = ({ type, toilet }) => {
         const fetchToilets = async () => {
             try {   
                 const response = await toiletsAPI.getAll();
-                console.log('API Response:', response.data);
+                // console.log('API Response:', response.data);
                 // API returns { success: true, data: { toilets: [...] } }
                 const toiletData = response.data?.data?.toilets || response.data?.toilets || response.data || [];
-                console.log('Toilets data:', toiletData);
+                // console.log('Toilets data:', toiletData);
                 setToilets(toiletData);
             } catch (error) {
                 console.error('Error fetching toilets:', error);

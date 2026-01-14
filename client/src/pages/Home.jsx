@@ -91,7 +91,7 @@ const Home = () => {
             if (filters.location) queryParams.append('location', filters.location);
             if (filters.paid) queryParams.append('paid', filters.paid);
             if (filters.maxDistance) queryParams.append('maxDistance', filters.maxDistance);
-            navigate(`/toilets?${queryParams.toString()}`);
+            // navigate(`/toilets?${queryParams.toString()}`);
           }} />
         </Box>
       </Box>
@@ -131,7 +131,7 @@ const Home = () => {
             if (filters.location) queryParams.append('location', filters.location);
             if (filters.paid) queryParams.append('paid', filters.paid);
             if (filters.maxDistance) queryParams.append('maxDistance', filters.maxDistance);
-            navigate(`/toilets?${queryParams.toString()}`);
+            // navigate(`/toilets?${queryParams.toString()}`);
           }} />
         </Box>
         <Box sx={{ mt: 40, mb: 5 }}>

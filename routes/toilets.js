@@ -15,7 +15,7 @@ router.get('/admin', isLoggedIn, isAdmin, async (req, res) => {
   try {
     const allToilets = await Toilet.find({}).populate('author');
     
-    console.log(`Admin: Found ${allToilets.length} total toilets`);
+    // console.log(`Admin: Found ${allToilets.length} total toilets`);
     
     // Update toilets without status to 'Pending'
     const updateResult = await Toilet.updateMany(
@@ -24,7 +24,7 @@ router.get('/admin', isLoggedIn, isAdmin, async (req, res) => {
     );
     
     if (updateResult.modifiedCount > 0) {
-      console.log(`Admin: Updated ${updateResult.modifiedCount} toilets to Pending status`);
+      // console.log(`Admin: Updated ${updateResult.modifiedCount} toilets to Pending status`);
     }
     
     // Re-fetch after update
@@ -34,7 +34,7 @@ router.get('/admin', isLoggedIn, isAdmin, async (req, res) => {
     const approved = updatedToilets.filter(t => t.status === 'Approved' || t.status === 'approved');
     const rejected = updatedToilets.filter(t => t.status === 'Rejected' || t.status === 'rejected');
 
-    console.log(`Admin: Pending: ${pending.length}, Approved: ${approved.length}, Rejected: ${rejected.length}`);
+    // console.log(`Admin: Pending: ${pending.length}, Approved: ${approved.length}, Rejected: ${rejected.length}`);
 
     res.json({
       success: true,
@@ -63,11 +63,11 @@ router.get('/admin', isLoggedIn, isAdmin, async (req, res) => {
 // POST approve a toilet
 router.post('/:id/approve', isLoggedIn, isAdmin, async (req, res) => {
   try {
-    console.log('Approve route hit:', req.params.id);
+    // console.log('Approve route hit:', req.params.id);
     const { id } = req.params;
     
     if (!Types.ObjectId.isValid(id)) {
-      console.log('Invalid toilet ID:', id);
+      // console.log('Invalid toilet ID:', id);
       return res.status(400).json({
         success: false,
         message: 'Invalid toilet ID'
@@ -77,14 +77,14 @@ router.post('/:id/approve', isLoggedIn, isAdmin, async (req, res) => {
     const toilet = await Toilet.findByIdAndUpdate(id, { status: 'Approved' }, { new: true });
     
     if (!toilet) {
-      console.log('Toilet not found:', id);
+      // console.log('Toilet not found:', id);
       return res.status(404).json({
         success: false,
         message: 'Toilet not found'
       });
     }
     
-    console.log('Toilet approved:', toilet.title);
+    // // console.log('Toilet approved:', toilet.title);
     res.json({
       success: true,
       message: `Toilet "${toilet.title}" has been approved and is now visible on the dashboard.`,
@@ -103,11 +103,11 @@ router.post('/:id/approve', isLoggedIn, isAdmin, async (req, res) => {
 // POST reject a toilet
 router.post('/:id/reject', isLoggedIn, isAdmin, async (req, res) => {
   try {
-    console.log('Reject route hit:', req.params.id);
+    // console.log('Reject route hit:', req.params.id);
     const { id } = req.params;
     
     if (!Types.ObjectId.isValid(id)) {
-      console.log('Invalid toilet ID:', id);
+      // console.log('Invalid toilet ID:', id);
       return res.status(400).json({
         success: false,
         message: 'Invalid toilet ID'
@@ -117,14 +117,14 @@ router.post('/:id/reject', isLoggedIn, isAdmin, async (req, res) => {
     const toilet = await Toilet.findByIdAndUpdate(id, { status: 'Rejected' }, { new: true });
     
     if (!toilet) {
-      console.log('Toilet not found:', id);
+      // console.log('Toilet not found:', id);
       return res.status(404).json({
         success: false,
         message: 'Toilet not found'
       });
     }
     
-    console.log('Toilet rejected:', toilet.title);
+    // console.log('Toilet rejected:', toilet.title);
     res.json({
       success: true,
       message: `Toilet "${toilet.title}" has been rejected and will not be shown on the dashboard.`,
