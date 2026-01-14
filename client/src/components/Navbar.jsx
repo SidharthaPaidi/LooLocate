@@ -45,16 +45,16 @@ const Navbar = () => {
             </Typography>
           </Box>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Button
+              component={Link}
+              to="/toilets"
+              sx={{ color: 'white', fontWeight: 600 }}
+            >
+              Browse Toilets
+            </Button>
             {isAuthenticated ? (
               <>
-                <Button
-                  component={Link}
-                  to="/toilets"
-                  sx={{ color: 'white', fontWeight: 600 }}
-                >
-                  Browse Toilets
-                </Button>
                 {user?.isAdmin && (
                   <Button component={Link} to="/admin" sx={{ color: 'white', fontWeight: 600 }}>
                     Admin Panel
@@ -97,7 +97,7 @@ const Navbar = () => {
                   <Button
                     component={Link}
                     to="/login"
-                    sx={{ bgcolor: 'white', color: 'primary.main',fontSize: "14px", '&:hover': { opacity: 0.9 }, borderRadius: "4px" ,p:"8px"}}
+                    sx={{ bgcolor: 'white', color: 'primary.main', fontSize: "14px", '&:hover': { opacity: 0.9 }, borderRadius: "4px", p: "8px" }}
                   >
                     Login
                   </Button>
@@ -111,7 +111,7 @@ const Navbar = () => {
                       '&:hover': { opacity: 0.9 },
                       borderRadius: "4px",
                       fontSize: "14px",
-                      p:"8px",
+                      p: "8px",
                     }}
                   >
                     Register

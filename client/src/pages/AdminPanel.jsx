@@ -161,7 +161,7 @@ const AdminPanel = () => {
                   <Typography variant="caption" color="text.secondary">
                     Added by: {toilet.author?.username || 'Unknown'}
                   </Typography>
-                  {tabValue === 0 && (
+                  {(tabValue === 0 && (
                     <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
                       <Button
                         size="small"
@@ -182,21 +182,53 @@ const AdminPanel = () => {
                         startIcon={<CancelIcon />}
                         onClick={(e) => {
                           e.stopPropagation();
-                          openActionDialog(toilet, 'reject');
-                        }}
-                      >
-                        Reject
-                      </Button>
-                    </Box>
+                            openActionDialog(toilet, 'reject');
+                          }}
+                          >
+                          Reject
+                          </Button>
+                        </Box>
+                        ))}
+                        {tabValue === 1 && (
+                        <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+                          <Button
+                          size="small"
+                          variant="contained"
+                          color="error"
+                          startIcon={<CancelIcon />}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openActionDialog(toilet, 'reject');
+                          }}
+                          >
+                          Reject
+                          </Button>
+                        </Box>
+                        )}
+                        {tabValue === 2 && (
+                        <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+                          <Button
+                          size="small"
+                          variant="contained"
+                          color="success"
+                          startIcon={<CheckCircleIcon />}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openActionDialog(toilet, 'approve');
+                          }}
+                          >
+                          Approve
+                          </Button>
+                        </Box>
+                        )}
+                      </CardContent>
+                      </Card>
+                    </Grid>
+                    ))}
+                  </Masonry>
                   )}
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Masonry>
-      )}
 
-      {/* Action Confirmation Dialog */}
+                  {/* Action Confirmation Dialog */}
       <Dialog open={actionDialog.open} onClose={() => setActionDialog({ open: false, toilet: null, action: '' })}>
         <DialogTitle>
           {actionDialog.action === 'approve' ? 'Approve' : 'Reject'} Toilet

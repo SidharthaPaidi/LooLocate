@@ -72,7 +72,7 @@ export default function SearchBar({ onSearch, initialValues = {} }) {
                         startAdornment: (
                             <InputAdornment position="start">
                                 <LocationOnIcon />
-                                <Button sx={{ padding: "4px 8px", fontSize: "12px" }} onClick={isAuthenticated ? handleLocationClick : () => navigate('/login')}>
+                                <Button sx={{ padding: "4px 8px", fontSize: "12px" }} onClick={handleLocationClick}>
                                     Use My Location
                                 </Button>
                             </InputAdornment>

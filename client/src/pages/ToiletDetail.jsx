@@ -41,6 +41,7 @@ const ToiletDetail = () => {
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [reviewForm, setReviewForm] = useState({ rating: 5, body: '' });
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [actionDialog, setActionDialog] = useState({ open: false, toilet: null, action: '' });
 
   useEffect(() => {
     fetchToilet();
@@ -62,25 +63,24 @@ const ToiletDetail = () => {
     }
   };
 
-  const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this toilet?')) return;
+  const handleAction = async (toiletId, action) => {
     try {
-      await toiletsAPI.delete(id);
-      navigate('/toilets');
+      if (action === 'delete') {
+        await toiletsAPI.delete(toiletId);
+      } else if (action === 'reject') {
+        await toiletsAPI.reject(toiletId);
+      }
+      setActionDialog({ open: false, toilet: null, action: '' });
+      fetchToilets();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to delete toilet');
+      setError(err.response?.data?.message || `Failed to ${action} toilet`);
     }
   };
 
-  const handleReject = async () => {
-    if (!window.confirm('Are you sure you want to reject this toilet listing?')) return;
-    try {
-      await toiletsAPI.reject(id);
-      navigate('/toilets');
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to reject toilet listing');
-    }
+  const openActionDialog = (toilet, action) => {
+    setActionDialog({ open: true, toilet, action });
   };
+
 
   const handleReviewSubmit = async () => {
     setSubmittingReview(true);
@@ -151,7 +151,7 @@ const ToiletDetail = () => {
           <Card sx={{ mb: 3, maxWidth: 500, mt: 7 }}>
             <CardMedia
               component="img"
-              image={toilet.images?.[0]?.url || 'https://via.placeholder.com/800x400?text=No+Image'}
+              image={toilet.images?.[0]?.url || 'https://www.freepik.com/premium-vector/image-available-icon-set-default-missing-photo-stock-vector-symbol-black-filled-outlined-style-no-image-found-sign_306720864.htm'}
               alt={toilet.title}
               sx={{ objectFit: 'cover', height: 300 }}
             />
@@ -291,26 +291,22 @@ const ToiletDetail = () => {
                   variant="outlined"
                   color="error"
                   startIcon={<DeleteIcon />}
-                  onClick={handleDelete}
+                  onClick={() => openActionDialog(toilet, 'delete')}
                 >
                   Delete
                 </Button>
-                {user?.isAdmin && (
+                {user?.isAdmin && toilet.status === 'Approved' && (
                   <Button
                     variant="outlined"
                     color="error"
                     startIcon={<RemoveCircleOutlineIcon />}
-                    onClick={handleReject}
+                    onClick={() => {
+                      openActionDialog(toilet, 'reject')
+                      navigate('/admin');
+                    } }
                   >
                     Reject
                   </Button>
-                )}
-                {user.isAdmin && !toilet.isApproved && (
-                  <Chip
-                    label="Pending Approval"
-                    color="warning"
-                    sx={{ ml: 2 }}
-                  />
                 )}
               </Box>
             )}
@@ -372,6 +368,29 @@ const ToiletDetail = () => {
         <Map type="detail" toilet={toilet} />
       </Container>
       <Footer />
+
+      <Dialog open={actionDialog.open} onClose={() => setActionDialog({ open: false, toilet: null, action: '' })}>
+        <DialogTitle>
+          {actionDialog.action === 'delete' ? 'Delete' : 'Reject'} Toilet
+        </DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to {actionDialog.action} "{actionDialog.toilet?.title}"?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setActionDialog({ open: false, toilet: null, action: '' })}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color={actionDialog.action === 'delete' ? 'error' : 'error'}
+            onClick={() => handleAction(actionDialog.toilet?._id, actionDialog.action)}
+          >
+            {actionDialog.action === 'delete' ? 'delete' : 'Reject'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };

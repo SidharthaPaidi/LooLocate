@@ -29,8 +29,6 @@ app.set('views', path.join(__dirname, 'views'));
 // CORS - must be before routes
 const cors = require('cors');
 const allowedOrigins = [
-  'http://localhost:3001',
-  'http://localhost:5173',
   process.env.CORS_ORIGIN
 ].filter(Boolean);
 
