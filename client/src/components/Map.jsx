@@ -229,6 +229,7 @@ const Map = ({ type, toilet }) => {
                 const coordinates = e.features[0].geometry.coordinates.slice();
                 const { title, location, genderAccess, isAccessible, isPaid, price, id } = e.features[0].properties;
 
+                const baseUrl = window.location.origin + (import.meta.env.BASE_URL || '/');
                 const popupContent = `
                     <div style="padding: 8px;">
                         <h3 style="margin: 0 0 8px 0; font-size: 16px;">${title}</h3>
@@ -236,7 +237,7 @@ const Map = ({ type, toilet }) => {
                         <p style="margin: 4px 0; font-size: 14px;">🚻 ${genderAccess}</p>
                         <p style="margin: 4px 0; font-size: 14px;">♿ ${isAccessible ? 'Accessible' : 'Not Accessible'}</p>
                         <p style="margin: 4px 0; font-size: 14px;">💰 ${isPaid ? `₹${price || 'Paid'}` : 'Free'}</p>
-                        <a href="/toilets/${id}" style="color: #1976d2; text-decoration: none;">View Details →</a>
+                        <a href="${baseUrl}toilets/${id}" style="color: #1976d2; text-decoration: none;">View Details →</a>
                     </div>
                 `;
 
